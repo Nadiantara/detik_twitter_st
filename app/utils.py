@@ -230,4 +230,4 @@ class Tweet(object):
         return self.text
 
     def component(self):
-        return components.html(self.text, height=600)
+        return components.html(self.text, height=800)
