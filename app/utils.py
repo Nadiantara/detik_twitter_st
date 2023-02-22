@@ -1,8 +1,16 @@
 import pandas as pd
+from datetime import datetime, timedelta
+import plotly.express as px
+import streamlit as st
+import requests
+import streamlit.components.v1 as components
 
+PATH = "/Users/nadiantara/detik/project/socialnetwork_dashboard/streamlit_app"
+
+# @st.cache
 def load_data():
-    detik_tweet = pd.read_csv("/data/all_cleaned_detik_tweet_merged.csv")
-    detik_reply = pd.read_csv("data/all_cleaned_reply_tweet_merged.csv")
+    detik_tweet = pd.read_csv(f"{PATH}/social_dashboard/data/all_cleaned_detik_tweet_merged.csv")
+    detik_reply = pd.read_csv(f"{PATH}/social_dashboard/data/all_cleaned_reply_tweet_merged.csv")
     return detik_tweet, detik_reply
 
 
@@ -28,6 +36,7 @@ def filter_date_range(df, date_col, start_date, end_date):
 
     return filtered_df.sort_values(by=date_col, ascending=True)
 
+
 def filter_by_date_with_previous_period(df,date_col, start_date, end_date):
     """Filter a DataFrame by a custom start date and end date, with a previous period included.
 
@@ -44,13 +53,181 @@ def filter_by_date_with_previous_period(df,date_col, start_date, end_date):
     end_date = pd.to_datetime(end_date)
 
     # Calculate start and end dates for previous period
-    previous_start_date = start_date - pd.Timedelta(days=(end_date - start_date).days)
-    previous_end_date = start_date - pd.Timedelta(days=1)
+    previous_start_date = start_date - timedelta(days=(end_date - start_date).days+1)
+    previous_end_date = end_date - timedelta(days=(end_date - start_date).days+1)
 
     # Filter by date range
-    filtered_df = df[(df[date_col] >= previous_start_date) & (df[date_col] <= end_date)]
+    filtered_df = df[(df[date_col] >= previous_start_date) & (df[date_col] <= previous_end_date)]
 
     # Sort by date ascending
-    sorted_df = filtered_df.sort_values('date_col', ascending=True)
+    sorted_df = filtered_df.sort_values(date_col, ascending=True)
 
     return sorted_df
+
+
+def count_by_group(df, group_col, count_col):
+    """Group by a column and count the occurrences of each value.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame to group by.
+        group_col (str): The name of the column to group by.
+        count_col (str): The name of the column to count.
+
+    Returns:
+        pandas.DataFrame: A DataFrame with the count of occurrences for each group.
+    """
+    counts = df.groupby(group_col)[count_col].count()
+        # Convert the resulting Series to a DataFrame with a descriptive column name
+    result = pd.DataFrame({'total_count': counts})
+
+    # Reset the index to include the grouping column
+    result.reset_index(inplace=True)
+
+    return result
+
+
+def sum_by_group(df, group_col, sum_col):
+    """Group by a column and sum the values in another column.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame to group by.
+        group_col (str): The name of the column to group by.
+        sum_col (str): The name of the column to sum.
+
+    Returns:
+        pandas.DataFrame: A DataFrame with the sum of values for each group.
+    """
+    
+    # Group the DataFrame by the specified column and sum the other column
+    grouped = df.groupby(group_col)[sum_col].sum()
+
+    # Convert the resulting Series to a DataFrame with a descriptive column name
+    result = pd.DataFrame({'total_value': grouped})
+
+    # Reset the index to include the grouping column
+    result.reset_index(inplace=True)
+
+    # Return the result
+    return result
+
+# @st.cache
+def filtering_wrap(df_tweet, df_reply, start_date, end_date):
+    # detik's tweet
+    tweet_filtered = filter_date_range(df_tweet, "date_only", start_date, end_date)
+    tweet_per_date = count_by_group(tweet_filtered, "date_only", "id")
+    tweet_per_hour = count_by_group(tweet_filtered, "hour", "id")
+    tweet_filtered_previous = filter_by_date_with_previous_period(df_tweet, "date_only", start_date, end_date)
+    tweet_per_date_previous = count_by_group(tweet_filtered_previous, "date_only", "id")
+    tweet_per_hour_previous = count_by_group(tweet_filtered_previous, "hour", "id")
+    
+    #popularity score
+    popularity_per_date = sum_by_group(tweet_filtered, "date_only", "popularity_score")
+    popularity_per_hour = sum_by_group(tweet_filtered, "hour", "popularity_score")
+    popularity_per_date_previous = sum_by_group(tweet_filtered_previous, "date_only", "popularity_score")
+    popularity_per_hour_previous = sum_by_group(tweet_filtered_previous, "hour", "popularity_score")
+
+    # reply
+    reply_filtered = filter_date_range(df_reply, "date_only", start_date, end_date)
+    reply_per_date = count_by_group(reply_filtered, "date_only", "reply_id")
+    reply_per_hour = count_by_group(reply_filtered, "hour", "reply_id")
+    reply_filtered_previous = filter_by_date_with_previous_period(df_reply, "date_only", start_date, end_date)
+    reply_per_date_previous = count_by_group(reply_filtered_previous, "date_only", "reply_id")
+    reply_per_hour_previous = count_by_group(reply_filtered_previous, "hour", "reply_id")
+
+    # popular and controversial
+    top_popular_tweets = tweet_filtered.sort_values(by="popularity_score", ascending=False).head(3)
+    top_popular_replies = reply_filtered.sort_values(by="popularity_score", ascending=False).head(3)
+    top_controversial_tweets = tweet_filtered.sort_values(by="controversiality_score", ascending=False).head(3)
+    top_controversial_replies = reply_filtered.sort_values(by="controversiality_score", ascending=False).head(3)
+    
+    return (tweet_filtered, tweet_per_date, tweet_per_hour, tweet_filtered_previous, tweet_per_date_previous, 
+            tweet_per_hour_previous,popularity_per_date, popularity_per_hour, popularity_per_date_previous, popularity_per_hour_previous, reply_filtered, reply_per_date, reply_per_hour, reply_filtered_previous, 
+            reply_per_date_previous, reply_per_hour_previous, top_popular_tweets, top_popular_replies, 
+            top_controversial_tweets, top_controversial_replies)
+
+
+
+
+
+
+def add_date_column_and_concatenate(A, B):
+    """
+    Adds a new period column to two Pandas DataFrames and concatenates them.
+
+    Args:
+        A (pandas.DataFrame): The first DataFrame to concatenate.
+        B (pandas.DataFrame): The second DataFrame to concatenate.
+
+    Returns:
+        pandas.DataFrame: The concatenated DataFrame.
+
+    """
+    # Add new column to A and B
+    A['period'] = 'This Period'
+    B['period'] = 'Previous Period'
+    B["date_only"] = A["date_only"]
+
+    # Concatenate A and B
+    concatenated_df = pd.concat([A, B], ignore_index=True)
+
+    return concatenated_df 
+
+def daily_tweet(df):
+    df = df.rename(columns={"date_only": "date", "total_count": "total"})
+    fig = px.line(df, x='date', y='total', title='Total Tweet Published per Day')
+    return fig
+
+def daily_popularity(df):
+    df = df.rename(columns={"date_only": "date", "total_value": "total"})
+    fig = px.line(df, x='date', y='total', title=' Tweet Popularity per Day')
+    return fig
+
+def hourly_popularity(df):
+    df = df.rename(columns={"total_value": "total"})
+    fig = px.line(df, x='hour', y='total', title=' Tweet Popularity per Hour')
+    return fig
+
+def daily_engagement(df):
+    df = df.rename(columns={"date_only": "date", "total_count": "total"})
+    fig = px.line(df, x='date', y='total', title='Users Replies per Day')
+    return fig
+
+def plot_metrics_by_date(df, color_1="blue", color_2="lightblue", y_title = "tweets published" ):
+    # Rename the columns in the dataframe
+    df = df.rename(columns={"date_only": "date", "total_count": y_title})
+
+    # Create the line chart
+    fig = px.line(df, x='date', y='tweets published', color='period', symbol="period",
+                  color_discrete_map={"This Period": color_1, "Previous Period": color_2})
+
+    # Update the chart layout
+    fig.update_layout(
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        ),
+        plot_bgcolor='white'
+    )
+
+    fig
+    
+
+class Tweet(object):
+    def __init__(self, s, embed_str=False):
+        if not embed_str:
+            # Use Twitter's oEmbed API
+            # https://dev.twitter.com/web/embedded-tweets
+            api = "https://publish.twitter.com/oembed?url={}".format(s)
+            response = requests.get(api)
+            self.text = response.json()["html"]
+        else:
+            self.text = s
+
+    def _repr_html_(self):
+        return self.text
+
+    def component(self):
+        return components.html(self.text, height=600)

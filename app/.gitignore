@@ -1,0 +1,9 @@
+__pycache__/
+.ipynb_checkpoints
+secrets.toml
+.env
+.venv
+env/
+venv/
+ENV/
+test.ipynb
