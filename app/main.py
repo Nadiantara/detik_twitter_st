@@ -32,12 +32,22 @@ result_dict = filtering_wrap(df_tweet, df_reply, start_date, end_date)
 
 #score card
 
+score_card_dict = score_card_wrap(result_dict["tweet_per_date"],result_dict["tweet_per_date_previous"],
+                                  result_dict["popularity_per_date"],result_dict["popularity_per_date_previous"],
+                    result_dict["controversiality_per_date"], result_dict["controversiality_per_date_previous"])
+
+total_tweets = score_card_dict["total_tweets"]
+tweet_diff = score_card_dict["total_tweets_diff"]
+total_popularity = score_card_dict["total_popularity"]
+popularity_diff = score_card_dict["total_popularity_diff"]
+total_controversiality = score_card_dict["total_controversiality"]
+controversiality_diff = score_card_dict["total_controversiality_diff"]
 
 
 col1, col2, col3 = st.columns(3)
-col1.metric(f"Total Tweets", "70 °F", "1.2 °F")
-col2.metric(f"Popularity Score", "9 mph", "-8%")
-col3.metric(f"Controversiality Score", "86%", "4%")
+col1.metric("Total Tweets", f"{total_tweets}", '{:.1%}'.format(tweet_diff))
+col2.metric("Popularity Score", f"{total_popularity}", '{:.1%}'.format(popularity_diff))
+col3.metric("Controversiality Score", f"{total_controversiality}", '{:.1%}'.format(controversiality_diff))
 
 
 

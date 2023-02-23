@@ -29,16 +29,12 @@ start_date = datetime.combine(start_date, datetime.min.time())
 end_date = datetime.combine(end_date, datetime.min.time())
 
 # Filter the data based on the date input
-(tweet_filtered, tweet_per_date, tweet_per_hour, tweet_filtered_previous, tweet_per_date_previous, 
-            tweet_per_hour_previous,popularity_per_date, popularity_per_hour, popularity_per_date_previous,
-            popularity_per_hour_previous, reply_filtered, reply_per_date, reply_per_hour, reply_filtered_previous, 
-            reply_per_date_previous, reply_per_hour_previous, top_popular_tweets, top_popular_replies, 
-            top_controversial_tweets, top_controversial_replies) = filtering_wrap(df_tweet, df_reply, start_date, end_date)
+result_dict = filtering_wrap(df_tweet, df_reply, start_date, end_date)
 
 
-top_popular_tweets_list = top_popular_tweets["id"].to_list()
-top_popular_replies_list = top_popular_replies["reply_id"].to_list()
-top_popular_replies_name = top_popular_replies["user_name"].to_list()
+top_popular_tweets_list = result_dict["top_popular_tweets"]["id"].to_list()
+top_popular_replies_list = result_dict["top_popular_replies"]["reply_id"].to_list()
+top_popular_replies_name = result_dict["top_popular_replies"]["user_name"].to_list()
 #concatenated_df = add_date_column_and_concatenate(tweet_per_date, tweet_per_date_previous)
 
 # Create a two-column layout with the charts

@@ -173,11 +173,6 @@ def filtering_wrap(df_tweet, df_reply, start_date, end_date):
 
     return result_dict
     
-    return (tweet_filtered, tweet_per_date, tweet_per_hour, tweet_filtered_previous, tweet_per_date_previous, 
-            tweet_per_hour_previous,popularity_per_date, popularity_per_hour, popularity_per_date_previous, popularity_per_hour_previous, reply_filtered, reply_per_date, reply_per_hour, reply_filtered_previous, 
-            reply_per_date_previous, reply_per_hour_previous, top_popular_tweets, top_popular_replies, 
-            top_controversial_tweets, top_controversial_replies)
-
 
 
 
@@ -292,7 +287,6 @@ def compute_now_previous(A,B):
     return concatenated_df
 
 
-
 def calc_period_percent_diff(df):
     # Separate the dataframe into "This Period" and "Previous Period"
     this_period = df[df['period'] == 'This Period']
@@ -304,10 +298,31 @@ def calc_period_percent_diff(df):
 
     # Calculate the percentage difference between the periods
     if prev_period_sum == 0:
-        percent_diff="Not Available"    
-    percent_diff = ((this_period_sum - prev_period_sum) / prev_period_sum) * 100
+        percent_diff = 0
+    else:
+        percent_diff = ((this_period_sum - prev_period_sum) / prev_period_sum)
     
     return this_period_sum, percent_diff
+
+
+def score_card_wrap(tweet_per_date,tweet_per_date_previous,popularity_per_date,popularity_per_date_previous,
+                    controversiality_per_date,controversiality_per_date_previous):
+    total_tweets_concat = compute_now_previous(tweet_per_date,tweet_per_date_previous)
+    total_tweets, total_tweets_diff = calc_period_percent_diff(total_tweets_concat)
+    total_popularity_concat = compute_now_previous(popularity_per_date,popularity_per_date_previous)
+    total_popularity, total_popularity_diff = calc_period_percent_diff(total_popularity_concat)
+    total_controversiality_concat = compute_now_previous(controversiality_per_date,controversiality_per_date_previous)
+    total_controversiality, total_controversiality_diff = calc_period_percent_diff(total_controversiality_concat)
+    result_dict = {
+        'total_tweets': total_tweets,
+        'total_tweets_diff': total_tweets_diff,
+        'total_popularity': total_popularity,
+        'total_popularity_diff': total_popularity_diff,
+        'total_controversiality': total_controversiality,
+        'total_controversiality_diff': total_controversiality_diff
+    }
+    return result_dict
+
 
 
 class Tweet(object):
