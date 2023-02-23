@@ -28,22 +28,24 @@ start_date = datetime.combine(start_date, datetime.min.time())
 end_date = datetime.combine(end_date, datetime.min.time())
 
 # Filter the data based on the date input
-(tweet_filtered, tweet_per_date, tweet_per_hour, tweet_filtered_previous, tweet_per_date_previous, 
-            tweet_per_hour_previous,popularity_per_date, popularity_per_hour, popularity_per_date_previous,
-            popularity_per_hour_previous, reply_filtered, reply_per_date, reply_per_hour, reply_filtered_previous, 
-            reply_per_date_previous, reply_per_hour_previous, top_popular_tweets, top_popular_replies, 
-            top_controversial_tweets, top_controversial_replies) = filtering_wrap(df_tweet, df_reply, start_date, end_date)
+result_dict = filtering_wrap(df_tweet, df_reply, start_date, end_date)
 
-#concatenated_df = add_date_column_and_concatenate(tweet_per_date, tweet_per_date_previous)
+#score card
 
 
 
+col1, col2, col3 = st.columns(3)
+col1.metric(f"Total Tweets", "70 °F", "1.2 °F")
+col2.metric(f"Popularity Score", "9 mph", "-8%")
+col3.metric(f"Controversiality Score", "86%", "4%")
 
-lineplot1 = daily_tweet(tweet_per_date)
-lineplot2 = daily_popularity(popularity_per_date)
-lineplot3 = hourly_popularity(popularity_per_hour)
-lineplot4 = daily_engagement(reply_per_date)
-lineplot5 = hourly_engagement(reply_per_hour)
+
+
+lineplot1 = daily_tweet(result_dict["tweet_per_date"])
+lineplot2 = daily_popularity(result_dict["popularity_per_date"])
+lineplot3 = hourly_popularity(result_dict["popularity_per_hour"])
+lineplot4 = daily_engagement(result_dict["reply_per_date"])
+lineplot5 = hourly_engagement(result_dict["reply_per_hour"])
 
 
 st.plotly_chart(lineplot1)

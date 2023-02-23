@@ -127,6 +127,12 @@ def filtering_wrap(df_tweet, df_reply, start_date, end_date):
     popularity_per_hour = sum_by_group(tweet_filtered, "hour", "popularity_score")
     popularity_per_date_previous = sum_by_group(tweet_filtered_previous, "date_only", "popularity_score")
     popularity_per_hour_previous = sum_by_group(tweet_filtered_previous, "hour", "popularity_score")
+    
+    #controversiality score
+    controversiality_per_date = sum_by_group(tweet_filtered, "date_only", "controversiality_score")
+    controversiality_per_hour = sum_by_group(tweet_filtered, "hour", "controversiality_score")
+    controversiality_per_date_previous = sum_by_group(tweet_filtered_previous, "date_only", "controversiality_score")
+    controversiality_per_hour_previous = sum_by_group(tweet_filtered_previous, "hour", "controversiality_score")
 
     # reply
     reply_filtered = filter_date_range(df_reply, "date_only", start_date, end_date)
@@ -141,6 +147,31 @@ def filtering_wrap(df_tweet, df_reply, start_date, end_date):
     top_popular_replies = reply_filtered.sort_values(by="popularity_score", ascending=False).head(4)
     top_controversial_tweets = tweet_filtered.sort_values(by="controversiality_score", ascending=False).head(4)
     top_controversial_replies = reply_filtered.sort_values(by="controversiality_score", ascending=False).head(4)
+    
+    result_dict = {
+        "tweet_per_date": tweet_per_date,
+        "tweet_per_hour": tweet_per_hour,
+        "tweet_per_date_previous": tweet_per_date_previous,
+        "tweet_per_hour_previous": tweet_per_hour_previous,
+        "popularity_per_date": popularity_per_date,
+        "popularity_per_hour": popularity_per_hour,
+        "popularity_per_date_previous": popularity_per_date_previous,
+        "popularity_per_hour_previous": popularity_per_hour_previous,
+        "controversiality_per_date": controversiality_per_date,
+        "controversiality_per_hour": controversiality_per_hour,
+        "controversiality_per_date_previous": controversiality_per_date_previous,
+        "controversiality_per_hour_previous": controversiality_per_hour_previous,
+        "reply_per_date": reply_per_date,
+        "reply_per_hour": reply_per_hour,
+        "reply_per_date_previous": reply_per_date_previous,
+        "reply_per_hour_previous": reply_per_hour_previous,
+        "top_popular_tweets": top_popular_tweets,
+        "top_popular_replies": top_popular_replies,
+        "top_controversial_tweets": top_controversial_tweets,
+        "top_controversial_replies": top_controversial_replies,
+    }
+
+    return result_dict
     
     return (tweet_filtered, tweet_per_date, tweet_per_hour, tweet_filtered_previous, tweet_per_date_previous, 
             tweet_per_hour_previous,popularity_per_date, popularity_per_hour, popularity_per_date_previous, popularity_per_hour_previous, reply_filtered, reply_per_date, reply_per_hour, reply_filtered_previous, 
@@ -221,7 +252,63 @@ def plot_metrics_by_date(df, color_1="blue", color_2="lightblue", y_title = "twe
     )
 
     fig.show()
+
+
+def fill_missing_rows(A, B):
+    # Get a set of unique dates in A
+    A_dates = set(A.iloc[:, 0].tolist())
+
+    # Create a new dataframe B' with the same dates as A
+    B_cols = B.columns.tolist()
+    B_prime = pd.DataFrame(columns=B_cols)
+
+    # Fill in the values from B where dates match
+    if not B.empty:
+        for i in range(B.shape[0]):
+            date = B.iloc[i, 0]
+            val = B.iloc[i, 1]
+            B_prime = B_prime.append(pd.DataFrame([[date, val]], columns=B_cols), ignore_index=True)
+
+    # Fill in any missing dates with 0
+    for date in A_dates:
+        if date not in B_prime.iloc[:, 0].tolist():
+            B_prime = B_prime.append(pd.DataFrame([[date, 0]], columns=B_cols), ignore_index=True)
+
+    # Sort the rows by date
+    B_prime = B_prime.sort_values(by=B_cols[0])
+
+    return B_prime
+
+
+def check_same_rows(A, B):
+    return A.shape[0] == B.shape[0]
+
+def compute_now_previous(A,B):
+    if check_same_rows(A,B):
+        concatenated_df = add_date_column_and_concatenate(A,B)
+    else:
+        B = fill_missing_rows(A,B)
+        concatenated_df = add_date_column_and_concatenate(A,B)
+    return concatenated_df
+
+
+
+def calc_period_percent_diff(df):
+    # Separate the dataframe into "This Period" and "Previous Period"
+    this_period = df[df['period'] == 'This Period']
+    prev_period = df[df['period'] == 'Previous Period']
+
+    # Calculate the sum of values for each period
+    this_period_sum = this_period.iloc[:, 1].sum()
+    prev_period_sum = prev_period.iloc[:, 1].sum()
+
+    # Calculate the percentage difference between the periods
+    if prev_period_sum == 0:
+        percent_diff="Not Available"    
+    percent_diff = ((this_period_sum - prev_period_sum) / prev_period_sum) * 100
     
+    return this_period_sum, percent_diff
+
 
 class Tweet(object):
     def __init__(self, s, embed_str=False):
