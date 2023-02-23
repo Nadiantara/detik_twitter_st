@@ -9,7 +9,7 @@ import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 DATA_PATH = os.path.dirname(currentdir)
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=300)
 def load_data():
     detik_tweet = pd.read_csv(f"{DATA_PATH}/data/all_cleaned_detik_tweet_merged.csv")
     detik_reply = pd.read_csv(f"{DATA_PATH}/data/all_cleaned_reply_tweet_merged.csv")
@@ -112,7 +112,7 @@ def sum_by_group(df, group_col, sum_col):
     # Return the result
     return result
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=300)
 def filtering_wrap(df_tweet, df_reply, start_date, end_date):
     # detik's tweet
     tweet_filtered = filter_date_range(df_tweet, "date_only", start_date, end_date)
@@ -220,7 +220,7 @@ def plot_metrics_by_date(df, color_1="blue", color_2="lightblue", y_title = "twe
         plot_bgcolor='white'
     )
 
-    fig
+    fig.show()
     
 
 class Tweet(object):
