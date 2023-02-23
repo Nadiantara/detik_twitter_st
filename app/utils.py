@@ -5,12 +5,14 @@ import streamlit as st
 import requests
 import streamlit.components.v1 as components
 
-PATH = "/Users/nadiantara/detik/project/socialnetwork_dashboard/streamlit_app"
+import os,sys,inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+DATA_PATH = os.path.dirname(currentdir)
 
-# @st.cache
+@st.cache_data(ttl=60)
 def load_data():
-    detik_tweet = pd.read_csv(f"{PATH}/social_dashboard/data/all_cleaned_detik_tweet_merged.csv")
-    detik_reply = pd.read_csv(f"{PATH}/social_dashboard/data/all_cleaned_reply_tweet_merged.csv")
+    detik_tweet = pd.read_csv(f"{DATA_PATH}/data/all_cleaned_detik_tweet_merged.csv")
+    detik_reply = pd.read_csv(f"{DATA_PATH}/data/all_cleaned_reply_tweet_merged.csv")
     return detik_tweet, detik_reply
 
 
@@ -110,7 +112,7 @@ def sum_by_group(df, group_col, sum_col):
     # Return the result
     return result
 
-# @st.cache
+@st.cache_data(ttl=60)
 def filtering_wrap(df_tweet, df_reply, start_date, end_date):
     # detik's tweet
     tweet_filtered = filter_date_range(df_tweet, "date_only", start_date, end_date)
@@ -192,6 +194,12 @@ def daily_engagement(df):
     fig = px.line(df, x='date', y='total', title='Users Replies per Day')
     return fig
 
+def hourly_engagement(df):
+    df = df.rename(columns={"hour": "hour", "total_count": "total"})
+    fig = px.line(df, x='hour', y='total', title='Users Replies per Hour')
+    return fig
+
+
 def plot_metrics_by_date(df, color_1="blue", color_2="lightblue", y_title = "tweets published" ):
     # Rename the columns in the dataframe
     df = df.rename(columns={"date_only": "date", "total_count": y_title})
@@ -229,5 +237,10 @@ class Tweet(object):
     def _repr_html_(self):
         return self.text
 
+    def component(self):
+        return components.html(self.text, height=500)
+    
+    
+class TweetReply(Tweet):
     def component(self):
         return components.html(self.text, height=800)

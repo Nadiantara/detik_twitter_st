@@ -49,18 +49,21 @@ lineplot1 = daily_tweet(tweet_per_date)
 lineplot2 = daily_popularity(popularity_per_date)
 lineplot3 = hourly_popularity(popularity_per_hour)
 lineplot4 = daily_engagement(reply_per_date)
+lineplot5 = hourly_engagement(reply_per_hour)
+
 
 st.plotly_chart(lineplot1)
 st.plotly_chart(lineplot2)
 st.plotly_chart(lineplot3)
 st.plotly_chart(lineplot4)
+st.plotly_chart(lineplot5)
 
 col3, col4 = st.columns(2)
 with col3:
    st.header("#1 Reply")
-   t = Tweet(f"https://twitter.com/{top_popular_replies_name[0]}/status/{top_popular_replies_list[0]}").component()
+   t = TweetReply(f"https://twitter.com/{top_popular_replies_name[0]}/status/{top_popular_replies_list[0]}").component()
 
 with col4:
    st.header("#2 Reply")
-   t = Tweet(f"https://twitter.com/{top_popular_replies_name[1]}/status/{top_popular_replies_list[1]}").component()
+   t = TweetReply(f"https://twitter.com/{top_popular_replies_name[1]}/status/{top_popular_replies_list[1]}").component()
 
