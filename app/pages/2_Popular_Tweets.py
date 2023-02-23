@@ -53,12 +53,31 @@ with col2:
    st.header("#2 Tweet")
    t = Tweet(f"https://twitter.com/detikcom/status/{top_popular_tweets_list[1]}").component()
    
-   
 col3, col4 = st.columns(2)
+
 with col3:
+   st.header("#3 Tweet")
+   t = Tweet(f"https://twitter.com/detikcom/status/{top_popular_tweets_list[2]}").component()
+
+with col4:
+   st.header("#4 Tweet")
+   t = Tweet(f"https://twitter.com/detikcom/status/{top_popular_tweets_list[3]}").component()
+   
+   
+col5, col6 = st.columns(2)
+with col5:
    st.header("#1 Reply")
    t = TweetReply(f"https://twitter.com/{top_popular_replies_name[0]}/status/{top_popular_replies_list[0]}").component()
 
-with col4:
+with col6:
    st.header("#2 Reply")
    t = TweetReply(f"https://twitter.com/{top_popular_replies_name[1]}/status/{top_popular_replies_list[1]}").component()
+   
+col7, col8 = st.columns(2)
+with col7:
+   st.header("#3 Reply")
+   t = TweetReply(f"https://twitter.com/{top_popular_replies_name[0]}/status/{top_popular_replies_list[2]}").component()
+
+with col8:
+   st.header("#4 Reply")
+   t = TweetReply(f"https://twitter.com/{top_popular_replies_name[1]}/status/{top_popular_replies_list[3]}").component()

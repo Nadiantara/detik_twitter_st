@@ -137,10 +137,10 @@ def filtering_wrap(df_tweet, df_reply, start_date, end_date):
     reply_per_hour_previous = count_by_group(reply_filtered_previous, "hour", "reply_id")
 
     # popular and controversial
-    top_popular_tweets = tweet_filtered.sort_values(by="popularity_score", ascending=False).head(3)
-    top_popular_replies = reply_filtered.sort_values(by="popularity_score", ascending=False).head(3)
-    top_controversial_tweets = tweet_filtered.sort_values(by="controversiality_score", ascending=False).head(3)
-    top_controversial_replies = reply_filtered.sort_values(by="controversiality_score", ascending=False).head(3)
+    top_popular_tweets = tweet_filtered.sort_values(by="popularity_score", ascending=False).head(4)
+    top_popular_replies = reply_filtered.sort_values(by="popularity_score", ascending=False).head(4)
+    top_controversial_tweets = tweet_filtered.sort_values(by="controversiality_score", ascending=False).head(4)
+    top_controversial_replies = reply_filtered.sort_values(by="controversiality_score", ascending=False).head(4)
     
     return (tweet_filtered, tweet_per_date, tweet_per_hour, tweet_filtered_previous, tweet_per_date_previous, 
             tweet_per_hour_previous,popularity_per_date, popularity_per_hour, popularity_per_date_previous, popularity_per_hour_previous, reply_filtered, reply_per_date, reply_per_hour, reply_filtered_previous, 
