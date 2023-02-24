@@ -1,6 +1,7 @@
 import streamlit as st
 import plotly.express as px
 from datetime import date
+import altair as alt
 import pandas as pd
 from utils import *
 
@@ -50,18 +51,23 @@ col2.metric("Popularity Score", f"{total_popularity}", '{:.1%}'.format(popularit
 col3.metric("Controversiality Score", f"{total_controversiality}", '{:.1%}'.format(controversiality_diff))
 
 
+tweet_concat = score_card_dict["total_tweets_concat"]
+popularity_concat = score_card_dict["total_popularity_concat"]
+controversiality_concat = score_card_dict["total_controversiality_concat"]
 
-lineplot1 = daily_tweet(result_dict["tweet_per_date"])
-lineplot2 = daily_popularity(result_dict["popularity_per_date"])
+lineplot1 = altair_count_timeseries(tweet_concat,"Total Daily Published Tweets")
+lineplot2 = altair_sum_timeseries(popularity_concat, "Daily Popularity Score")
 lineplot3 = hourly_popularity(result_dict["popularity_per_hour"])
-lineplot4 = daily_engagement(result_dict["reply_per_date"])
+
+lineplot4 = altair_sum_timeseries(controversiality_concat,"Daily Controversiality Score","#f77f00","#fcbf49")
+#lineplot4 = daily_engagement(result_dict["reply_per_date"])
 lineplot5 = hourly_engagement(result_dict["reply_per_hour"])
 
-
-st.plotly_chart(lineplot1)
-st.plotly_chart(lineplot2)
+st.altair_chart(lineplot1, use_container_width=True)
+st.altair_chart(lineplot2, use_container_width=True)
+#st.plotly_chart(lineplot2)
 st.plotly_chart(lineplot3)
-st.plotly_chart(lineplot4)
+st.altair_chart(lineplot4, use_container_width=True)
 st.plotly_chart(lineplot5)
 
 

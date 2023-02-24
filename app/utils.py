@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import datetime, timedelta
+import altair as alt
 import plotly.express as px
 import streamlit as st
 import requests
@@ -212,7 +213,7 @@ def daily_popularity(df):
 
 def hourly_popularity(df):
     df = df.rename(columns={"total_value": "total"})
-    fig = px.line(df, x='hour', y='total', title=' Tweet Popularity per Hour')
+    fig = px.line(df, x='hour', y='total', title=' Tweet Popularity per Hour').update_traces(line=dict(color='red'))
     return fig
 
 def daily_engagement(df):
@@ -222,20 +223,16 @@ def daily_engagement(df):
 
 def hourly_engagement(df):
     df = df.rename(columns={"hour": "hour", "total_count": "total"})
-    fig = px.line(df, x='hour', y='total', title='Users Replies per Hour')
+    fig = px.line(df, x='hour', y='total', title='Users Replies per Hour').update_traces(line=dict(color="#f77f00"))
     return fig
-
 
 def plot_metrics_by_date(df, color_1="blue", color_2="lightblue", y_title = "tweets published" ):
     # Rename the columns in the dataframe
     df = df.rename(columns={"date_only": "date", "total_count": y_title})
 
     # Create the line chart
-    fig = px.line(df, x='date', y='tweets published', color='period', symbol="period",
-                  color_discrete_map={"This Period": color_1, "Previous Period": color_2})
-
-    # Update the chart layout
-    fig.update_layout(
+    fig = px.line(df, x='date', y=y_title, color='period', symbol="period",
+                  color_discrete_map={"This Period": color_1, "Previous Period": color_2}).update_layout(
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -245,9 +242,67 @@ def plot_metrics_by_date(df, color_1="blue", color_2="lightblue", y_title = "twe
         ),
         plot_bgcolor='white'
     )
-
     fig.show()
+    
 
+
+def altair_count_timeseries(concatenated_df, chart_title):
+    data = concatenated_df
+    data = data.rename(columns={"date_only": "date", "total_count": "total"})
+    base = alt.Chart(data)
+    line = base.mark_line().encode(
+        x='date:T',
+        y=alt.Y('total:Q', axis=alt.Axis(title='# of tweets published')),
+        color= alt.Color('period:N', scale=alt.Scale(
+            domain=['This Period', 'Previous Period', ],
+            range=['#023e8a', '#00b4d8']
+        )),
+        tooltip=['date','total']
+    ).properties(width=700)
+
+    chart = line.properties(
+        title=chart_title,
+        height=400
+    ).configure_legend(
+        orient='top-left'
+    ).configure_axis(
+        grid=False
+    )
+
+
+    #chart_json = chart.to_json()
+    return chart
+
+def altair_sum_timeseries(concatenated_df, chart_title, color_1="red",color_2="#ffc8dd"):
+    data = concatenated_df
+    data = data.rename(columns={"date_only": "date", "total_value": "total"})
+    base = alt.Chart(data)
+    line = base.mark_line().encode(
+        x='date:T',
+        y=alt.Y('total:Q', axis=alt.Axis(title=chart_title)),
+        color= alt.Color('period:N', scale=alt.Scale(
+            domain=['This Period', 'Previous Period', ],
+            range=[color_1, color_2]
+        )),
+        tooltip=['date','total']
+    ).properties(width=700)
+
+    chart = line.properties(
+        title=chart_title,
+        height=400
+    ).configure_legend(
+        orient='top-left'
+    ).configure_axis(
+        grid=False
+    )
+
+
+    #chart_json = chart.to_json()
+    return chart
+    
+    
+    
+    
 
 def fill_missing_rows(A, B):
     # Get a set of unique dates in A
@@ -314,11 +369,14 @@ def score_card_wrap(tweet_per_date,tweet_per_date_previous,popularity_per_date,p
     total_controversiality_concat = compute_now_previous(controversiality_per_date,controversiality_per_date_previous)
     total_controversiality, total_controversiality_diff = calc_period_percent_diff(total_controversiality_concat)
     result_dict = {
+        'total_tweets_concat':total_tweets_concat,
         'total_tweets': total_tweets,
         'total_tweets_diff': total_tweets_diff,
         'total_popularity': total_popularity,
+        "total_popularity_concat": total_popularity_concat,
         'total_popularity_diff': total_popularity_diff,
         'total_controversiality': total_controversiality,
+        'total_controversiality_concat': total_controversiality_concat,
         'total_controversiality_diff': total_controversiality_diff
     }
     return result_dict
