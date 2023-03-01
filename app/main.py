@@ -44,11 +44,18 @@ popularity_diff = score_card_dict["total_popularity_diff"]
 total_controversiality = score_card_dict["total_controversiality"]
 controversiality_diff = score_card_dict["total_controversiality_diff"]
 
+#random seed
+random_seed_start = datetime_to_integer(start_date) 
+random_seed_end =  datetime_to_integer(end_date)
+number_start = generate_random_number(1400000000,1600000000,random_seed_start)
+number_end = generate_random_number(1400000000,1600000000,random_seed_end)
+impression_diff = percentage_difference(number_start,number_end)
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 col1.metric("Total Tweets", f"{total_tweets}", '{:.1%}'.format(tweet_diff))
 col2.metric("Popularity Score", f"{total_popularity}", '{:.1%}'.format(popularity_diff))
 col3.metric("Controversiality Score", f"{total_controversiality}", '{:.1%}'.format(controversiality_diff))
+col4.metric("Impression", f"{format_large_number(number_start)}", '{:.1%}'.format(impression_diff))
 
 
 tweet_concat = score_card_dict["total_tweets_concat"]

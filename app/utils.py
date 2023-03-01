@@ -5,6 +5,7 @@ import plotly.express as px
 import streamlit as st
 import requests
 import streamlit.components.v1 as components
+import random
 
 import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -381,7 +382,51 @@ def score_card_wrap(tweet_per_date,tweet_per_date_previous,popularity_per_date,p
     }
     return result_dict
 
+def datetime_to_integer(date_object):
+    """
+    Convert a datetime object to an integer.
+    :param date_object: the datetime object to convert (datetime)
+    :return: the integer representation of the date (int)
+    """
+    return int(date_object.strftime('%Y%m%d'))
 
+
+def generate_random_number(start, end, seed=None):
+    """
+    Generate a random integer between two given numbers (inclusive).
+    :param start: the lower bound of the range (int)
+    :param end: the upper bound of the range (int)
+    :param seed: an optional seed value for the random number generator (int)
+    :return: a random integer between start and end (inclusive)
+    """
+    if seed is not None:
+        random.seed(seed)
+    return random.randint(start, end)
+
+def format_large_number(n):
+    """
+    Format large numbers as a string with a suffix indicating the magnitude (e.g. 1.23B for 1.23 billion).
+    :param n: the number to format (int or float)
+    :return: a string with the formatted number and magnitude suffix
+    """
+    suffixes = ['', 'K', 'M', 'B', 'T', 'P', 'E', 'Z', 'Y']
+    magnitude = 0
+    while abs(n) >= 1000 and magnitude < len(suffixes) - 1:
+        magnitude += 1
+        n /= 1000.0
+    result = '{:.2f}{}'.format(n, suffixes[magnitude])
+    return result
+
+def percentage_difference(a, b):
+    """
+    Calculate the percentage difference between two numbers.
+    :param a: the first number (float or int)
+    :param b: the second number (float or int)
+    :return: the percentage difference between a and b (float)
+    """
+    diff = (a - b)
+    avg = (a + b) / 2
+    return (diff / avg)
 
 class Tweet(object):
     def __init__(self, s, embed_str=False):
